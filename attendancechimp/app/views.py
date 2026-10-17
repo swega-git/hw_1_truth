@@ -36,7 +36,7 @@ def index(request):
 def time_view(request):
   chi_time_now = chi_time_now = datetime.now(CDT)
   formatted_time = chi_time_now.strftime("%H:%M")
-  return HttpResponse(formatted_time, content_type="text/plain")
+  return HttpResponse(formatted_time)
 
 def sum_view(request):
     n1 = float(request.GET.get("n1", 0))
