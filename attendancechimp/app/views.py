@@ -43,8 +43,6 @@ def sum_view(request):
     n2 = float(request.GET.get("n2", 0))
 
     total = n1 + n2
-    if total.is_integer():
-        total = int(total)
 
     return JsonResponse({"sum": total})
 
