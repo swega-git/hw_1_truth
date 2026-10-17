@@ -9,8 +9,8 @@ def main():
     file_name = sys.argv[1]
 
     with open(file_name, 'r') as f:         # read the file line by line 
-        for line in f:                         
-            if random.random() < 0.01:      # Keep each input line with 0.01 probability 
+        for line in f:
+            if random.random() < 0.01:      # Randomly select each line with 1% probability 
                 print(line, end='')         # print to stdout
 
 
