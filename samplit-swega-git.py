@@ -10,7 +10,7 @@ def main():
 
     with open(file_name, 'r') as f:         # read the file line by line 
         for line in f:                         
-            if random.random() < 0.01:      # output each line with !% prob 
+            if random.random() < 0.01:      # Keep each input line with 0.01 probability 
                 print(line, end='')         # print to stdout
 
 
