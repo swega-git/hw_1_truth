@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+
+<!--
+AI Acknowledgment:
+I used ChatGPT to help me understand and write the HTML
+for this assignment. I am learning how the code works.
+-->
+
+<html>
+<head>
+    <title>AttendanceChimp - Sign Up</title>
+</head>
+
+<body>
+    <h1>Sign Up for AttendanceChimp</h1>
+
+    <form action="/app/createUser" method="POST">
+        {% csrf_token %}
+
+        <p>
+            Username:
+            <input type="text" name="user_name" required>
+        </p>
+
+        <p>
+            Email:
+            <input type="email" name="email" required>
+        </p>
+
+        <p>
+            Password:
+            <input type="password" name="password" required>
+        </p>
+
+        <p>Are you a student or instructor?</p>
+
+        <input type="radio" name="is_student" value="1" required>
+        Student
+
+        <input type="radio" name="is_student" value="0">
+        Instructor
+
+        <p>
+            <button type="submit">Sign Up</button>
+        </p>
+
+    </form>
+</body>
+</html>
+
