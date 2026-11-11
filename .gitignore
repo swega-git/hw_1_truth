@@ -1,0 +1,6 @@
+
+__pycache__/
+*.pyc
+db.sqlite3
+attendancechimp/app/migrations/
+attendancechimp/qr_uploads/

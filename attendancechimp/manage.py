@@ -12,6 +12,9 @@ def main():
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
         ) from exc
+    # Include app when generating migrations without an app name.
+    if sys.argv[1:] == ["makemigrations"]:
+        sys.argv.append("app")
     execute_from_command_line(sys.argv)
 
 if __name__ == '__main__':

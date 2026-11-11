@@ -15,9 +15,10 @@ from datetime import datetime
 import zoneinfo
 import json
 import io
+from uuid import uuid4
+from django.utils import timezone
 
-
-from .models import StudentProfile, InstructorProfile
+from .models import StudentProfile, InstructorProfile, Course, Lecture, QRCodeUpload
 CDT = zoneinfo.ZoneInfo("America/Chicago")
 
 
@@ -108,7 +109,125 @@ def createUser(request):
 # ---------------------------------------------------------------------------
 # HW5  — courses, lectures, QR uploads, dump
 # ---------------------------------------------------------------------------
+def new_course(request):
+    return render(request, "app/new_course.html")
 
+@csrf_exempt
+def createCourse(request):
+    # Check that the user is logged in.
+    if not request.user.is_authenticated:
+        return HttpResponse(status=401)
+
+    # Check that the logged-in user is an instructor.
+    instructor = InstructorProfile.objects.filter(user=request.user).first()
+    if instructor is None:
+        return HttpResponse(status=401)
+
+    # Only POST requests can create a course.
+    if request.method != "POST":
+        return HttpResponse(status=405)
+
+    name = request.POST.get("course-name", "").strip()
+    start_time = request.POST.get("start-time", "")
+    end_time = request.POST.get("end-time", "")
+
+    days = []
+    for day in ("mon", "tue", "wed", "thu", "fri"):
+        field_name = "day-" + day
+        if field_name in request.POST:
+            days.append(day.title())
+
+    if not name or not start_time or not end_time or not days:
+        return HttpResponseBadRequest("Course name, times, and meeting days are required")
+
+    if Course.objects.filter(name=name).exists():
+        return HttpResponseBadRequest("Course names must be unique")
+
+    day_text = ", ".join(days)
+    schedule = f"{day_text} {start_time}-{end_time}"
+
+    Course.objects.create(
+        name=name,
+        instructor=instructor,
+        meeting_schedule=schedule,
+    )
+    return HttpResponse(status=200)
+
+def new_lecture(request):
+    courses = Course.objects.all()
+    return render(request, "app/new_lecture.html", {"courses": courses})
+
+@csrf_exempt
+def createLecture(request):
+    if not request.user.is_authenticated:
+        return HttpResponse(status=401)
+
+    if not InstructorProfile.objects.filter(user=request.user).exists():
+        return HttpResponse(status=401)
+
+    if request.method != "POST":
+        return HttpResponse(status=405)
+
+    course_name = request.POST.get("choice", "")
+    course = Course.objects.filter(name=course_name).first()
+    if course is None:
+        return HttpResponseBadRequest("Choose an existing course")
+
+    Lecture.objects.create(
+        course=course,
+        date=timezone.localdate(),
+        qr_identifier=uuid4().hex,
+    )
+    return HttpResponse(status=200)
+
+
+def new_qr_upload(request):
+    return render(request, "app/new_qr_upload.html")
+
+
+@csrf_exempt
+def createQRCodeUpload(request):
+    if not request.user.is_authenticated:
+        return HttpResponse(status=401)
+
+    student = StudentProfile.objects.filter(user=request.user).first()
+    if student is None:
+        return HttpResponse(status=401)
+
+    if request.method != "POST":
+        return HttpResponse(status=405)
+
+    image = request.FILES.get("imageUpload")
+    if image is None:
+        return HttpResponseBadRequest("Choose an image")
+
+    QRCodeUpload.objects.create(
+        student=student,
+        image=image,
+    )
+    return HttpResponse(status=200)
+
+def dumpUploads(request):
+    if not request.user.is_authenticated:
+        return HttpResponse(status=401)
+
+    if not InstructorProfile.objects.filter(user=request.user).exists():
+        return HttpResponse(status=401)
+
+    if request.method != "GET":
+        return HttpResponse(status=405)
+
+    data = []
+
+    for upload in QRCodeUpload.objects.select_related("student__user"):
+        data.append({
+            "username": upload.student.user.username,
+            "upload_time": timezone.localtime(upload.uploaded_at).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            ),
+        })
+
+    return JsonResponse(data, safe=False)
 
 
 # ---------------------------------------------------------------------------
